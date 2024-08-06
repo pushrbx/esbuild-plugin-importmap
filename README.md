@@ -23,8 +23,12 @@ func main() {
 			"preact-progressive-enhancement": "https://esm.sh/preact-progressive-enhancement@1.0.5",
         },
     }
-
-	m := importmap.New(importmap.WithMap(myImportMapData))
+	
+	plugin, err := esbuild_plugin_importmap.NewPlugin(esbuild_plugin_importmap.WithMap(myImportMapData))
+	
+	if err != nil {
+		panic(err)
+    }
 
 	result := api.Build(api.BuildOptions{
 		EntryPoints: []string{"input.js"},
@@ -33,7 +37,7 @@ func main() {
 		Write:       true,
 		LogLevel:    api.LogLevelInfo,
 		Plugins: []api.Plugin{
-			esbuild_plugin_importmap.NewPlugin(m),
+			plugin,
 		},
 	})
 
@@ -63,6 +67,12 @@ func main() {
 		panic(err)
 	}
 
+	plugin, err := esbuild_plugin_importmap.NewPlugin(esbuild_plugin_importmap.WithImportMapPath("./importmap.json"))
+
+	if err != nil {
+		panic(err)
+	}
+
 	result := api.Build(api.BuildOptions{
 		EntryPoints: []string{"input.js"},
 		Outfile:     "output.js",
@@ -70,7 +80,7 @@ func main() {
 		Write:       true,
 		LogLevel:    api.LogLevelInfo,
 		Plugins: []api.Plugin{
-			esbuild_plugin_importmap.NewPlugin(m),
+			plugin,
 		},
 	})
 
