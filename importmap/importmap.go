@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"sort"
 	"strings"
 )
@@ -114,7 +115,8 @@ type importMap struct {
 	rootUrl   *url.URL
 }
 
-func New(opts ...Option) IImportMap {
+// New creates a new IImportMap instance
+func New(opts ...Option) (IImportMap, error) {
 	options := &Options{}
 
 	for _, opt := range opts {
@@ -129,11 +131,22 @@ func New(opts ...Option) IImportMap {
 		rootUrl:   options.RootUrl,
 	}
 
+	if obj.mapUrl == nil {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		obj.mapUrl, err = url.Parse(fmt.Sprintf("file://%s/", cwd))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if obj.rootUrl == nil && (obj.mapUrl.Scheme == "http" || obj.mapUrl.Scheme == "https") {
 		obj.rootUrl = obj.mapUrl.ResolveReference(&url.URL{Path: "/"})
 	}
 
-	return obj
+	return obj, nil
 }
 
 func WithMap(importMap Data) Option {

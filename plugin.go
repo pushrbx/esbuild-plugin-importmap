@@ -33,9 +33,14 @@ func NewPlugin(opts ...Option) (*api.Plugin, error) {
 
 	var importMap importmap.IImportMap
 	if config.ImportMapData != nil {
-		importMap = importmap.New(
+		var err error
+		importMap, err = importmap.New(
 			importmap.WithMap(*config.ImportMapData),
 		)
+
+		if err != nil {
+			return nil, err
+		}
 	}
 	if config.ImportMap != nil {
 		importMap = config.ImportMap

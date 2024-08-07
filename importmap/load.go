@@ -22,7 +22,11 @@ func LoadFromFile(path string) (IImportMap, error) {
 		return nil, err
 	}
 
-	m := New(WithMap(data))
+	m, err := New(WithMap(data))
+
+	if err != nil {
+		return nil, err
+	}
 
 	return m, nil
 }

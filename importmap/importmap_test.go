@@ -8,7 +8,7 @@ import (
 func TestResolveImportMap(t *testing.T) {
 	baseUrlRaw := "https://site.com"
 	baseUrl, _ := url.Parse(baseUrlRaw)
-	m := New(WithMapUrl(baseUrl), WithMap(Data{
+	m, _ := New(WithMapUrl(baseUrl), WithMap(Data{
 		Imports: Imports{
 			"test":                       "/test-map.js",
 			"https://another.com/url.js": "/url-map.js",
