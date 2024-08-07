@@ -62,7 +62,7 @@ func rebase(inputUrl string, baseUrl *url.URL, rootUrl *url.URL) (string, error)
 	}
 
 	if rootUrl != nil && strings.HasPrefix(rootUrl.String(), resolved.String()) {
-		return "/" + rootUrl.ResolveReference(resolved).String(), nil
+		return rootUrl.ResolveReference(resolved).String(), nil
 	}
 
 	if sameOrigin(resolved, baseUrl) {
