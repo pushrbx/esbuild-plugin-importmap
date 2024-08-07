@@ -17,16 +17,58 @@ type Imports map[string]string
 type Integrity map[string]string
 
 type IImportMap interface {
+	// Resolve performs a module resolution against the import map.
+	//
+	// Parameters:
+	//   - specified: Specifier to resolve
+	// Returns the resolved URL string.
 	Resolve(specifier string) (string, error)
 
+	// ResolveWithParent performs a module resolution against the import map.
+	//
+	// Parameters:
+	//   - specified: Specifier to resolve
+	//   - parentUrl: Parent URL to resolve against
+	// Returns the resolved URL string.
 	ResolveWithParent(specifier string, parentUrl *url.URL) (string, error)
 
+	// Rebase will rebase the entire import map to a new mapUrl and rootUrl
+	//
+	// Parameters:
+	//   - mapUrl: The new map URL to use
+	//   - rootUrl: The new root URL to use
+	// Returns IImportMap for chaining
 	Rebase(mapUrl *url.URL, rootUrl *url.URL) error
 
+	// Flatten groups the import map scopes to shared URLs to reduce duplicate mappings.
+	//
+	// For two given scopes, "https://site.com/x/" and "https://site.com/y/",
+	// a single scope will be constructed for "https://site.com/" including
+	// their shared mappings, only retaining the scopes if they have differences.
+	//
+	// In the case where the scope is on the same origin as the mapUrl, the grouped
+	// scope is determined based on determining the common baseline over all local scopes.
+	// Returns IImportMap for chaining
 	Flatten() IImportMap
 
+	// CombineSubPaths groups subpath mappings into path mappings when multiple exact subpaths
+	// exist under the same path.
+	//
+	// For two mappings like { "base/a.js": "/a.js", "base/b.js": "/b.js" },
+	// these will be replaced with a single path mapping { "base/": "/" }.
+	// Groupings are done throughout all import scopes individually.
+	//
+	// Returns IImportMap for chaining
 	CombineSubPaths() IImportMap
 
+	// Replace will replace URLs in the import map in bulk
+	// Provide a URL ending in "/" to perform path replacements.
+	//
+	// Parameters:
+	//   - url: URL to replace
+	//   - newUrl: URL to replace with
+	//
+	// Returns IImportMap for chaining
 	Replace(url url.URL, newUrl url.URL) IImportMap
 
 	GetIntegrity() Integrity
@@ -35,8 +77,10 @@ type IImportMap interface {
 
 	SetIntegrityValue(target string, integrity string) error
 
+	// Set will set a specific entry in the import map.
 	Set(name string, target string) IImportMap
 
+	// SetWithParent will set a specific entry in the import map.
 	SetWithParent(name string, target string, parent string) IImportMap
 
 	Extend(importMap IImportMap, overrideScopes bool) (IImportMap, error)
@@ -208,9 +252,7 @@ func (i *importMap) SetIntegrityValue(target string, integrity string) error {
 	return nil
 }
 
-// rebase the entire import map to a new mapUrl and rootUrl
-//
-//	If the rootUrl is not provided, it will remain null if it was already set to null.
+// Rebase is an implementation of the IImportMap interface.
 func (i *importMap) Rebase(mapUrl *url.URL, rootUrl *url.URL) error {
 	if mapUrl == nil {
 		return errors.New("invalid argument: mapUrl is nil")
@@ -321,6 +363,8 @@ func (i *importMap) Rebase(mapUrl *url.URL, rootUrl *url.URL) error {
 	i.rootUrl = rootUrl
 	return nil
 }
+
+// Flatten is an implementation of the IImportMap interface.
 func (i *importMap) Flatten() IImportMap {
 	return nil
 }
