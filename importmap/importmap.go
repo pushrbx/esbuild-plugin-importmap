@@ -366,14 +366,16 @@ func (i *importMap) Rebase(mapUrl *url.URL, rootUrl *url.URL) error {
 
 // Flatten is an implementation of the IImportMap interface.
 func (i *importMap) Flatten() IImportMap {
+	// todo: implement
 	return nil
 }
 
 func (i *importMap) CombineSubPaths() IImportMap {
+	// todo: implement
 	return nil
 }
 
-func (i *importMap) Replace(url url.URL, newUrl url.URL) IImportMap {
+func (i *importMap) Replace(_ url.URL, _ url.URL) IImportMap {
 	// todo: implement
 	return nil
 }
@@ -453,7 +455,7 @@ func (i *importMap) ResolveWithParent(specifier string, parentUrl *url.URL) (str
 }
 
 func (i *importMap) GetIntegrity() Integrity {
-	return nil
+	return i.integrity
 }
 
 type scopeMatchTuple struct {
