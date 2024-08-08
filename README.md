@@ -1,4 +1,4 @@
-# esbuild-plugin-importmaps
+# esbuild-plugin-importmap
 
 Esbuild plugin for utilizing import maps and url imports during bundling.
 This plugin is for cases where you want to use esbuild from your go project.
