@@ -96,8 +96,9 @@ func setup(importMap importmap.IImportMap) func(b api.PluginBuild) {
 				loader = api.LoaderJSX
 			}
 			if !strings.Contains(args.Path, "http") {
-				if filepath.IsLocal(args.Path) || filepath.IsAbs(args.Path) {
-					fileContents, err := os.ReadFile(args.Path)
+				cleanedPath := strings.Replace(args.Path, "file://", "", 1)
+				if filepath.IsLocal(cleanedPath) || filepath.IsAbs(cleanedPath) {
+					fileContents, err := os.ReadFile(cleanedPath)
 					if err != nil {
 						return api.OnLoadResult{}, err
 					}
