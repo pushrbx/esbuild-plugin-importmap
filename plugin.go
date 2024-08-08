@@ -17,6 +17,7 @@ import (
 
 const namespace = "importmap-url"
 
+// Config is the configuration object for the plugin
 type Config struct {
 	ImportMapData *importmap.Data
 	ImportMap     importmap.IImportMap
@@ -24,8 +25,8 @@ type Config struct {
 
 type Option func(config *Config)
 
-// NewPlugin creates a new importmap esbuild plugin
-func NewPlugin(opts ...Option) (*api.Plugin, error) {
+// NewPlugin creates a new import map esbuild plugin
+func NewPlugin(opts ...Option) (api.Plugin, error) {
 	config := &Config{}
 
 	for _, opt := range opts {
@@ -40,27 +41,29 @@ func NewPlugin(opts ...Option) (*api.Plugin, error) {
 		)
 
 		if err != nil {
-			return nil, err
+			return api.Plugin{}, err
 		}
 	}
 	if config.ImportMap != nil {
 		importMap = config.ImportMap
 	}
 	if importMap == nil {
-		return nil, fmt.Errorf("no importmap was provided")
+		return api.Plugin{}, fmt.Errorf("no importmap was provided")
 	}
-	return &api.Plugin{
+	return api.Plugin{
 		Name:  "importmap-url",
 		Setup: setup(importMap),
 	}, nil
 }
 
+// WithMap sets the import map data
 func WithMap(importMap importmap.Data) Option {
 	return func(config *Config) {
 		config.ImportMapData = &importMap
 	}
 }
 
+// WithImportMapPath sets the path to the import map json file
 func WithImportMapPath(path string) Option {
 	return func(config *Config) {
 		data, err := importmap.LoadFromFile(path)

@@ -72,10 +72,23 @@ type IImportMap interface {
 	// Returns IImportMap for chaining
 	Replace(url url.URL, newUrl url.URL) IImportMap
 
+	// GetIntegrity returns the integrity attribute of the import map, which holds all the integrity values.
 	GetIntegrity() Integrity
 
+	// GetIntegrityValue returns the integrity value of the specified target.
+	//
+	// Parameters:
+	//   - target: The target to get the integrity value for
+	//   - integrity: The expected integrity value
+	//
+	// Returns the integrity value, error if there was an error.
 	GetIntegrityValue(target string, integrity string) (string, error)
 
+	// SetIntegrityValue sets the integrity value of the specified target
+	//
+	// Parameters:
+	//   - target: The target to set the integrity value for
+	//   - integrity: The integrity value to be set
 	SetIntegrityValue(target string, integrity string) error
 
 	// Set will set a specific entry in the import map.
@@ -84,15 +97,20 @@ type IImportMap interface {
 	// SetWithParent will set a specific entry in the import map.
 	SetWithParent(name string, target string, parent string) IImportMap
 
+	// Extend will extend the import map with another import map
 	Extend(importMap IImportMap, overrideScopes bool) (IImportMap, error)
 
+	// Clone will clone the import map
 	Clone() IImportMap
 
+	// GetScopes returns the scopes attribute of the import map
 	GetScopes() Scopes
 
+	// GetImports returns the imports attribute of the import map
 	GetImports() Imports
 }
 
+// Options is the configuration object for the import map service
 type Options struct {
 	Map     Data
 	MapUrl  *url.URL
@@ -101,6 +119,7 @@ type Options struct {
 
 type Option func(options *Options)
 
+// Data is the representation of the import map json file contents
 type Data struct {
 	Imports   Imports   `json:"imports,omitempty"`
 	Scopes    Scopes    `json:"scopes,omitempty"`
@@ -208,11 +227,13 @@ func (i *importMap) Extend(importMap IImportMap, overrideScopes bool) (IImportMa
 	return i, nil
 }
 
+// Set implements the IImportMap interface
 func (i *importMap) Set(name string, target string) IImportMap {
 	i.imports[name] = target
 	return i
 }
 
+// SetWithParent implements the IImportMap interface
 func (i *importMap) SetWithParent(name string, target string, parent string) IImportMap {
 	if i.scopes[parent] == nil {
 		i.scopes[parent] = make(Scope)
@@ -221,14 +242,17 @@ func (i *importMap) SetWithParent(name string, target string, parent string) IIm
 	return i
 }
 
+// GetScopes implements the IImportMap interface
 func (i *importMap) GetScopes() Scopes {
 	return i.scopes
 }
 
+// GetImports implements the IImportMap interface
 func (i *importMap) GetImports() Imports {
 	return i.imports
 }
 
+// GetIntegrityValue implements the IImportMap interface
 func (i *importMap) GetIntegrityValue(target string, _ string) (string, error) {
 	targetRebased, err := rebase(target, i.mapUrl, i.rootUrl)
 	if err != nil {
@@ -245,6 +269,7 @@ func (i *importMap) GetIntegrityValue(target string, _ string) (string, error) {
 	return "", errors.New("integrity not found")
 }
 
+// SetIntegrityValue implements the IImportMap interface
 func (i *importMap) SetIntegrityValue(target string, integrity string) error {
 	i.integrity[target] = integrity
 	targetRebased, err := rebase(target, i.mapUrl, i.rootUrl)
