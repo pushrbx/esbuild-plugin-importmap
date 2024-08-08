@@ -2,6 +2,7 @@ package importmap
 
 import (
 	"net/url"
+	"os"
 	"testing"
 )
 
@@ -24,6 +25,30 @@ func TestResolveImportMap(t *testing.T) {
 	assertUrlsEquals(m, "/url.js", "https://another.com/", "https://site.com/url-map.js", t)
 	assertUrlsEquals(m, "https://site.com/url.js", "https://another.com/x", "https://site.com/scoped-map.js", t)
 	assertUrlsEqualsU(m, "https://another.com/url.js", baseUrl, "https://site.com/url-map.js", t)
+}
+
+func TestResolveLocalFilePaths(t *testing.T) {
+	m, _ := New(WithMap(Data{
+		Imports: Imports{
+			"@/": "./",
+		},
+	}))
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cwdUrl, _ := url.Parse(cwd)
+
+	result, err := m.ResolveWithParent("@/lib/test.js", cwdUrl)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result != "file://"+cwd+"/lib/test.js" {
+		t.Errorf("expected %s, got %s", "file://"+cwd+"/lib/test.js", result)
+	}
 }
 
 func assertUrlsEquals(m IImportMap, inputUrl string, baseUrl string, expectedUrl string, t *testing.T) {

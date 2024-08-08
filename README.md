@@ -37,7 +37,7 @@ func main() {
 		Write:       true,
 		LogLevel:    api.LogLevelInfo,
 		Plugins: []api.Plugin{
-			*plugin,
+			plugin,
 		},
 	})
 
@@ -80,7 +80,7 @@ func main() {
 		Write:       true,
 		LogLevel:    api.LogLevelInfo,
 		Plugins: []api.Plugin{
-			*plugin,
+			plugin,
 		},
 	})
 
