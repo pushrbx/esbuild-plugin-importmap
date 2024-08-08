@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -80,7 +81,17 @@ func setup(importMap importmap.IImportMap) func(b api.PluginBuild) {
 			Filter:    ".*",
 			Namespace: namespace,
 		}, func(args api.OnLoadArgs) (api.OnLoadResult, error) {
-			loader := api.LoaderJS | api.LoaderTS | api.LoaderJSX | api.LoaderTSX
+			loader := api.LoaderJS
+			ext := path.Ext(args.Path)
+			switch ext {
+			case ".ts":
+				loader = api.LoaderTS
+				break
+			case ".tsx":
+				loader = api.LoaderTSX
+			case ".jsx":
+				loader = api.LoaderJSX
+			}
 			if !strings.Contains(args.Path, "http") {
 				if filepath.IsLocal(args.Path) || filepath.IsAbs(args.Path) {
 					fileContents, err := os.ReadFile(args.Path)
