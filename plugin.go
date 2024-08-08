@@ -73,8 +73,7 @@ func WithImportMapPath(path string) Option {
 func setup(importMap importmap.IImportMap) func(b api.PluginBuild) {
 	return func(b api.PluginBuild) {
 		b.OnResolve(api.OnResolveOptions{
-			Filter:    "^[^.].*$",
-			Namespace: namespace,
+			Filter: "^[^.].*$",
 		}, onResolve(importMap))
 
 		b.OnLoad(api.OnLoadOptions{
