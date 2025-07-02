@@ -12,7 +12,9 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
+	"time"
 )
 
 const namespace = "importmap-url"
@@ -113,30 +115,46 @@ func setup(importMap importmap.IImportMap) func(b api.PluginBuild) {
 					return api.OnLoadResult{}, errors.New("invalid path: " + args.Path)
 				}
 			} else {
-				// download from url
-				resp, err := http.Get(args.Path)
+				const maxRetries = 3
+				const baseDelay = 300 * time.Millisecond
+				var statusCodesToRetry = []int{429, 500, 502, 503, 504}
 
-				if err != nil {
-					return api.OnLoadResult{}, err
+				for attempt := 0; attempt < maxRetries; attempt++ {
+					// download from url
+					resp, err := http.Get(args.Path)
+
+					if err != nil {
+						return api.OnLoadResult{}, err
+					}
+
+					var buf bytes.Buffer
+
+					_, err = io.Copy(&buf, resp.Body)
+					if err != nil {
+						return api.OnLoadResult{}, err
+					}
+
+					contents := buf.String()
+
+					_ = resp.Body.Close()
+
+					if strings.Contains(contents, "SlowDown") || slices.Index(statusCodesToRetry, resp.StatusCode) > -1 {
+						if attempt < maxRetries-1 {
+							delay := time.Duration(1<<uint(attempt)) * baseDelay
+							time.Sleep(delay)
+							continue
+						} else {
+							return api.OnLoadResult{}, fmt.Errorf("failed to download file after %d attempts, received %d status code: %s", maxRetries, resp.StatusCode, args.Path)
+						}
+					}
+
+					return api.OnLoadResult{
+						Contents: &contents,
+						Loader:   loader,
+					}, nil
 				}
 
-				defer func(Body io.ReadCloser) {
-					_ = Body.Close()
-				}(resp.Body)
-
-				var buf bytes.Buffer
-
-				_, err = io.Copy(&buf, resp.Body)
-				if err != nil {
-					return api.OnLoadResult{}, err
-				}
-
-				contents := buf.String()
-
-				return api.OnLoadResult{
-					Contents: &contents,
-					Loader:   loader,
-				}, nil
+				return api.OnLoadResult{}, fmt.Errorf("failed to download file after %d attempts: %s", maxRetries, args.Path)
 			}
 		})
 	}
